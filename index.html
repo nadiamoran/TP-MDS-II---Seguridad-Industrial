@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo de interfaz – 5 casos de uso</title>
+<style>
+:root{--red:#C62828;--red-bg:#FDECEA;--red-dk:#8E1B1B;--ink:#1F2937;--muted:#6B7280;--line:#E5E7EB;--bg:#F5F6F8;
+--green:#2E7D32;--green-bg:#E8F5E9;--amber:#92400E;--amber-bg:#FEF3C7;--blue:#1E40AF;--blue-bg:#DBEAFE;--side:#1F2937}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#E9EBEF;font-size:14px;line-height:1.4}
+button{font-family:inherit;color:inherit}
+small{color:var(--muted)}
+
+/* ---------- marco del prototipo ---------- */
+.proto{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+.nav{background:#fff;border-right:1px solid var(--line);padding:20px 16px 32px;overflow:auto;position:sticky;top:0;height:100vh}
+.nav h1{font-size:15px;margin:0 0 4px}
+.nav p{margin:0 0 14px;color:var(--muted);font-size:12px}
+.nav details{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#FAFAFB}
+.nav summary{cursor:pointer;padding:10px 12px;font-weight:700;font-size:13px;list-style:none}
+.nav summary::-webkit-details-marker{display:none}
+.nav summary small{display:block;font-weight:500}
+.nav .items{padding:0 6px 8px}
+.nav .it{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:transparent;
+  padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px}
+.nav .it:hover{background:#F0F1F4}
+.nav .it.on{background:var(--red-bg);color:var(--red-dk);font-weight:700}
+.tg{font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.tg.n{background:var(--green-bg);color:#166534}.tg.e{background:var(--red-bg);color:var(--red-dk)}
+.sim{margin-top:18px;border:1px dashed #9CA3AF;border-radius:10px;padding:12px;font-size:12px;background:#fff}
+.sim b{display:block;margin-bottom:8px;font-size:12px}
+.sim label{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.sim button{border:1px solid #D1D5DB;background:#fff;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:12px;font-weight:600}
+main{min-width:0;display:flex;flex-direction:column;min-height:100vh}
+.stage{flex:1;padding:20px}
+.app{container-type:inline-size;background:var(--bg);border-radius:14px;border:1px solid #D5D8DE;box-shadow:0 6px 24px rgba(0,0,0,.08);overflow:hidden;min-height:680px}
+.trace{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 20px;font-size:12px;color:var(--muted)}
+.trace b{color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.toast.show{opacity:1}
+
+/* ---------- portal cliente ---------- */
+.hd{background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:28px;padding:12px 32px;flex-wrap:wrap}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--red);color:#fff;font-weight:700;display:grid;place-items:center;font-size:15px;flex:none}
+.brand b{display:block;font-size:16px}.brand small{font-size:11px}
+.mainnav{display:flex;gap:28px;flex:1}
+.mainnav a{font-weight:500;padding:8px 0;border-bottom:3px solid transparent;cursor:default}
+.mainnav a.on{color:var(--red);font-weight:700;border-color:var(--red)}
+.hd-r{display:flex;gap:18px;align-items:center}
+.cart{position:relative;display:inline-flex}
+.cart i{position:absolute;top:-8px;right:-10px;background:var(--red);color:#fff;font-style:normal;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:grid;place-items:center}
+.user{display:flex;gap:8px;align-items:center;font-weight:500;font-size:13px}
+.user em{font-style:normal;width:32px;height:32px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-weight:700;color:var(--muted)}
+.content{padding:24px 32px 40px}
+.bc{font-size:13px;color:var(--muted);margin-bottom:14px}
+.page-title{font-size:26px;font-weight:700;margin:0 0 4px}
+.page-sub{color:var(--muted);margin:0 0 22px}
+@container (max-width:860px){.mainnav{display:none}.hd{padding:12px 20px}.content{padding:20px}}
+
+/* ---------- panel interno ---------- */
+.adm{display:grid;grid-template-columns:230px 1fr;min-height:680px}
+.adm-side{background:var(--side);color:#fff;padding:16px 12px}
+.adm-side .brand{padding:0 6px 24px}.adm-side .brand small{color:#9CA3AF}
+.adm-side a{display:block;padding:10px 14px;border-radius:8px;color:#D1D5DB;font-weight:500;margin-bottom:6px;border-left:4px solid transparent;cursor:default}
+.adm-side a.on{background:#374151;color:#fff;font-weight:700;border-left-color:var(--red)}
+.adm-top{background:#fff;border-bottom:1px solid var(--line);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px}
+.adm-main{min-width:0;background:var(--bg)}
+@container (max-width:760px){.adm{grid-template-columns:1fr}.adm-side{display:flex;gap:8px;overflow:auto;align-items:center;padding:10px}.adm-side .brand{padding:0 8px 0 0}.adm-side a{margin:0;white-space:nowrap;border-left:0}}
+
+/* ---------- componentes ---------- */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+@container (max-width:900px){.cols{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px}
+.card h3{margin:0 0 14px;font-size:16px}
+.card h2{margin:0 0 14px;font-size:18px}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.row{display:flex;justify-content:space-between;gap:12px;margin:10px 0}
+.row span:first-child{color:var(--muted)}.row span:last-child{font-weight:600;text-align:right}
+.big{font-size:30px;font-weight:700;text-align:right}
+.btn{border:1px solid #D1D5DB;background:#fff;border-radius:8px;padding:12px 18px;font-weight:600;font-size:14px;cursor:pointer}
+.btn:hover{background:#F9FAFB}
+.btn.primary{background:var(--red);color:#fff;border-color:var(--red)}
+.btn.primary:hover{background:#B02222}
+.btn:disabled{background:#D1D5DB;color:#fff;border-color:#D1D5DB;cursor:not-allowed}
+.btn.block{width:100%;margin-top:10px}
+.link{background:none;border:0;color:var(--muted);font-weight:500;cursor:pointer;margin:10px auto 0;display:block}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.opts.two{grid-template-columns:repeat(2,1fr)}
+@container (max-width:620px){.opts{grid-template-columns:repeat(2,1fr)}.opts.two{grid-template-columns:1fr}}
+.opt{position:relative;border:1px solid var(--line);background:#fff;border-radius:10px;padding:16px;cursor:pointer;text-align:left;font-size:15px;display:flex;gap:12px;align-items:center}
+.opt:hover{border-color:#9CA3AF}
+.opt.cap{justify-content:center;font-weight:700;font-size:18px;padding:20px}
+.opt.on{border:2px solid var(--red);background:var(--red-bg)}
+.opt.cap.on{color:var(--red)}
+.opt.bad b{color:var(--red-dk)}
+.opt small{display:block;font-weight:400;margin-top:3px}
+.tick{position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;display:grid;place-items:center}
+.radio{width:18px;height:18px;border-radius:50%;border:2px solid #9CA3AF;background:#fff;flex:none;display:inline-block}
+.opt.on .radio{border-color:var(--red);box-shadow:inset 0 0 0 4px #fff;background:var(--red)}
+.sec{font-weight:700;margin:0 0 12px;font-size:16px}
+.note{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;margin-top:6px}
+.note i{width:18px;height:18px;border-radius:50%;background:#E0F2FE;color:#0369A1;font-style:normal;font-weight:700;font-size:12px;display:grid;place-items:center;flex:none}
+.banner{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--red);background:var(--red-bg);color:var(--red-dk);border-radius:10px;padding:12px 14px;margin-bottom:18px}
+.banner.warn{border-color:#D97706;background:var(--amber-bg);color:var(--amber)}
+.banner.ok{border-color:var(--green);background:var(--green-bg);color:#166534}
+.banner i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-style:normal;font-weight:700;display:grid;place-items:center;font-size:13px}
+.banner.warn i{background:#D97706}.banner.ok i{background:var(--green)}
+.banner b{display:block}
+.chip{display:inline-block;border-radius:99px;padding:4px 12px;font-size:11px;font-weight:700}
+.chip.amber{background:var(--amber-bg);color:var(--amber)}.chip.green{background:#DCFCE7;color:#166534}
+.chip.red{background:var(--red-bg);color:var(--red-dk)}.chip.blue{background:var(--blue-bg);color:var(--blue)}.chip.gray{background:#F3F4F6;color:#374151}
+.tblwrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.cols>*{min-width:0}
+.tbl{width:100%;min-width:540px;border-collapse:collapse}
+.tbl td,.tbl th{white-space:nowrap}
+.tbl td:first-child{white-space:normal;min-width:230px}
+.tbl th{font-size:12px;color:var(--muted);text-align:right;font-weight:600;padding:0 0 8px}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:12px 0;border-bottom:1px solid var(--line);text-align:right}
+.tbl td:first-child{text-align:left}
+.itm{display:flex;gap:12px;align-items:center}
+.itm em{font-style:normal;width:44px;height:44px;border-radius:8px;background:#F3F4F6;display:grid;place-items:center;font-size:10px;font-weight:700;color:var(--muted);flex:none}
+.itm b{display:block}.itm small{display:block}.itm small.red{color:var(--red);font-weight:700}
+.stepper{display:inline-flex;align-items:center;gap:8px}
+.stepper button{width:28px;height:28px;border-radius:6px;border:1px solid #D1D5DB;background:#fff;cursor:pointer;font-weight:700}
+.addr{display:flex;justify-content:space-between;background:#F9FAFB;border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:8px}
+.addr a{color:var(--red);font-weight:600}
+.infobox{background:#F0F9FF;border:1px solid #BAE6FD;color:#075985;border-radius:10px;padding:12px 14px;font-size:12px;margin:14px 0}
+.pay{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;width:100%;background:#fff;cursor:pointer;text-align:left}
+.pay.on{border:2px solid var(--red);background:var(--red-bg)}
+.pay.on .radio{border-color:var(--red);background:var(--red);box-shadow:inset 0 0 0 4px #fff}
+.pay b{display:block;font-size:15px}.pay small{display:block}
+
+/* resultado */
+.result{max-width:600px;margin:36px auto;text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:36px 32px}
+.ico{width:68px;height:68px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center}
+.ico b{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:24px}
+.ico.ok{background:var(--green-bg)}.ico.ok b{background:var(--green)}
+.ico.err{background:var(--red-bg)}.ico.err b{background:var(--red)}
+.ico.warn{background:var(--amber-bg)}.ico.warn b{background:#D97706}
+.spin{width:56px;height:56px;border-radius:50%;border:6px solid var(--line);border-top-color:var(--red);margin:6px auto 16px;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.result h2{margin:0 0 10px;font-size:22px}
+.result p{margin:4px 0;color:var(--muted)}
+.result .chip{margin:14px 0 4px}
+.result .acts{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.gw{border:1px dashed #9CA3AF;background:#F9FAFB;border-radius:12px;padding:18px;margin-top:20px;text-align:left}
+.gw small{display:block;margin-bottom:10px}
+
+/* formularios */
+.fld{margin-bottom:16px}
+.fld label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.fld input,.fld select,.fld textarea{width:100%;border:1px solid #D1D5DB;border-radius:8px;padding:11px 14px;font:inherit;background:#fff}
+.fld textarea{min-height:76px;resize:vertical}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:2px solid #2563EB;outline-offset:-1px}
+.fld .invalid{border:2px solid var(--red)}
+.err{color:var(--red);font-size:12px;font-weight:600;margin-top:5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@container (max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+.drop{border:1.5px dashed #9CA3AF;background:#F9FAFB;border-radius:8px;padding:16px;text-align:center;color:var(--muted);cursor:pointer;display:block}
+.drop b{color:var(--ink);display:block}
+.certs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.certs .chip button{border:0;background:none;cursor:pointer;font-weight:700;margin-left:4px;color:inherit}
+.certs input{width:200px;border:1px solid #D1D5DB;border-radius:99px;padding:6px 12px;font:inherit}
+.actions{display:flex;gap:12px;margin-top:22px;padding-top:22px;border-top:1px solid var(--line);flex-wrap:wrap}
+.scanner{background:#111827;border-radius:12px;aspect-ratio:16/9;position:relative;display:grid;place-items:center;margin-bottom:16px}
+.scanner:before,.scanner:after,.scanner i:before,.scanner i:after{content:"";position:absolute;width:40px;height:40px;border:4px solid #fff}
+.scanner:before{top:24px;left:24px;border-right:0;border-bottom:0}
+.scanner:after{top:24px;right:24px;border-left:0;border-bottom:0}
+.scanner i:before{bottom:24px;left:24px;border-right:0;border-top:0}
+.scanner i:after{bottom:24px;right:24px;border-left:0;border-top:0}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.dl small{display:block;font-weight:600;font-size:12px}.dl b{font-size:16px}
+@container (max-width:620px){.dl{grid-template-columns:1fr}}
+.head-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:22px}
+
+/* ---------- móvil ---------- */
+@media (max-width:900px){
+  .proto{grid-template-columns:1fr}
+  .nav{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+  main{min-height:0}.stage{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="proto">
+  <aside class="nav" id="nav"></aside>
+  <main>
+    <div class="stage"><div class="app" id="app"></div></div>
+    <div class="trace" id="trace"></div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============ utilidades ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const money = n => '$ ' + num(n);
+const pad = n => String(n).padStart(2, '0');
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast.h); toast.h=setTimeout(()=>t.classList.remove('show'),2200); }
+const OUT = () => toast('Esta acción está fuera del alcance de este caso de uso.');
+
+/* ============ datos de ejemplo ============ */
+const CAPS = ['1 kg','2.5 kg','5 kg','10 kg'];
+const BASE = {'1 kg':7500,'2.5 kg':12000,'5 kg':18500,'10 kg':29000};
+const AGENTS = [
+  {k:'Polvo ABC', l:'Polvo ABC', d:'Fuegos clase A, B y C', add:0},
+  {k:'CO2', l:'CO₂ (dióxido de carbono)', d:'Equipos eléctricos y sensibles', add:6000},
+  {k:'HCFC', l:'HCFC', d:'Agente limpio, sin residuos', add:9000},
+  {k:'Agua pulverizada', l:'Agua pulverizada', d:'Fuegos clase A', add:-2000},
+];
+const INCOMP = {'Agua pulverizada':['1 kg','2.5 kg']};      // combinaciones no válidas
+const STOCK = 3;                                              // stock disponible del matafuego
+const PEDIDO = 'PED-000123';
+const ORDEN_OK = 'OS-7F3A9C21', ORDEN_YA = 'OS-11AA22BB';
+const METHODS = [
+  ['Mercado Pago','Dinero en cuenta o tarjetas guardadas'],
+  ['Tarjeta de crédito o débito','Visa, Mastercard, Cabal'],
+  ['MODO','Pagá desde la app de tu banco'],
+  ['Transferencia bancaria','CBU / CVU'],
+];
+const blankAdm = () => ({nombre:'',cat:'Matafuegos',desc:'',precio:'',stockMin:'',exist:'',specs:'',certs:[],certTmp:'',pdf:'',errors:{},banner:false});
+const exampleAdm = () => ({nombre:'Matafuego ABC 5 kg',cat:'Matafuegos',desc:'Matafuego portátil de polvo químico ABC de 5 kg, con soporte y manómetro.',
+  precio:'42000',stockMin:'10',exist:'50',specs:'Capacidad 5 kg · Polvo ABC · 14 bar',certs:['IRAM 3517'],certTmp:'',pdf:'ficha-matafuego-abc-5kg.pdf',errors:{},banner:false});
+
+/* ============ estado ============ */
+const S = {
+  view:{cu:'13',sc:'main'},
+  c13:{cap:'5 kg',agent:'Polvo ABC',confirmed:false},
+  c16:{qty:2,error:false},
+  c17:{method:0,gateway:false,err:false,info:false,simDown:false},
+  log:{code:'',bad:false,reason:'',ts:''},
+  adm:blankAdm(),
+  reservaEnd:0,
+};
+const totals = q => { const sub=q*42000+18500, env=6800, total=sub+env; return {sub,env,total,iva:total/1.21*0.21}; };
+const qtyEff = () => Math.min(S.c16.qty, STOCK);
+
+/* ============ componentes ============ */
+const ICON_CART = '<svg width="30" height="26" viewBox="0 0 30 26" fill="none" stroke="#1F2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 2h5l3 14h14l3-10H8"/><circle cx="12" cy="22" r="2"/><circle cx="22" cy="22" r="2"/></svg>';
+const QR = '<svg width="120" height="120" viewBox="0 0 120 120" fill="#fff"><g fill="none" stroke="#fff" stroke-width="4"><rect x="2" y="2" width="38" height="38" rx="3"/><rect x="80" y="2" width="38" height="38" rx="3"/><rect x="2" y="80" width="38" height="38" rx="3"/></g><rect x="13" y="13" width="16" height="16" rx="2"/><rect x="91" y="13" width="16" height="16" rx="2"/><rect x="13" y="91" width="16" height="16" rx="2"/><rect x="60" y="4" width="16" height="16"/><rect x="60" y="40" width="16" height="16"/><rect x="40" y="60" width="16" height="16"/><rect x="80" y="80" width="16" height="16"/><rect x="100" y="60" width="16" height="16"/><rect x="60" y="100" width="16" height="16"/><rect x="100" y="100" width="16" height="16"/><rect x="40" y="100" width="16" height="16"/></svg>';
+
+function shellC(bc, inner){
+  return `<div class="hd"><div class="brand"><span class="logo">SI</span><span><b>Seguridad Industrial</b><small>E-commerce de matafuegos y equipamiento</small></span></div>
+  <nav class="mainnav"><a>Catálogo</a><a>Contratar recarga</a><a>Mis pedidos</a><a>Mis recargas</a></nav>
+  <div class="hd-r"><span class="cart">${ICON_CART}<i>2</i></span><span class="user"><em>C</em>Cliente</span></div></div>
+  <div class="content"><div class="bc">${bc}</div>${inner}</div>`;
+}
+function shellA(role, items, active, bc, inner){
+  return `<div class="adm"><aside class="adm-side"><div class="brand"><span class="logo">SI</span><span><b>Seguridad Industrial</b><small>Panel interno</small></span></div>
+  ${items.map(i=>`<a class="${i===active?'on':''}">${i}</a>`).join('')}</aside>
+  <div class="adm-main"><div class="adm-top"><span>${bc}</span><span class="user"><em>${role[0]}</em>${role}</span></div><div class="content">${inner}</div></div></div>`;
+}
+const banner = (kind,title,body) => `<div class="banner ${kind==='error'?'':kind}"><i>${kind==='ok'?'✓':'!'}</i><div><b>${title}</b>${body?`<span>${body}</span>`:''}</div></div>`;
+const chip = (t,c) => `<span class="chip ${c}">${t}</span>`;
+function result(kind,title,lines,chipHtml,acts,extra=''){
+  const ico = kind==='wait' ? '<div class="spin"></div>' : `<div class="ico ${kind}"><b>${{ok:'✓',err:'✕',warn:'!'}[kind]}</b></div>`;
+  return `<div class="result">${ico}<h2>${title}</h2>${lines.map(l=>`<p>${l}</p>`).join('')}${chipHtml||''}
+  ${acts?`<div class="acts">${acts}</div>`:''}${extra}</div>`;
+}
+const btn = (label,act,cls='',attrs='') => `<button class="btn ${cls}" data-act="${act}" ${attrs}>${label}</button>`;
+
+/* ============ pantallas ============ */
+const SCREENS = {};
+
+/* ---- CU-CLI-13 ---- */
+SCREENS['13:main'] = () => {
+  const c=S.c13, inc=(INCOMP[c.agent]||[]).includes(c.cap);
+  const ag=AGENTS.find(a=>a.k===c.agent), price=BASE[c.cap]+ag.add;
+  const caps=CAPS.map(x=>`<button class="opt cap ${x===c.cap?'on':''}" data-act="cap" data-v="${x}">${x}${x===c.cap?'<span class="tick">✓</span>':''}</button>`).join('');
+  const ags=AGENTS.map(a=>`<button class="opt ${a.k===c.agent?'on':''} ${a.k===c.agent&&inc?'bad':''}" data-act="agent" data-v="${a.k}"><span class="radio"></span><span><b>${a.l}</b><small>${a.d}</small></span></button>`).join('');
+  const html = shellC('Inicio / Recargas / Contratar recarga', `
+    <h1 class="page-title">Contratar Recarga / Mantenimiento</h1>
+    <p class="page-sub">Configurá el servicio de recarga de tu matafuego. El precio se calcula según la combinación elegida.</p>
+    <div class="cols"><div class="card">
+      <p class="sec">1. Capacidad del cilindro</p><div class="opts">${caps}</div>
+      <p class="sec">2. Tipo de agente extintor</p><div class="opts two">${ags}</div>
+      ${inc?banner('error','La combinación seleccionada no es válida.','Modificá la capacidad o el agente extintor para continuar.'):''}
+      <div class="note"><i>i</i>El servicio de recarga no consume stock de productos terminados.</div>
+    </div>
+    <div class="card"><h2>Resumen de la configuración</h2><div class="hr"></div>
+      <div class="row"><span>Servicio</span><span>Recarga y mantenimiento</span></div>
+      <div class="row"><span>Capacidad</span><span>${c.cap}</span></div>
+      <div class="row"><span>Agente extintor</span><span>${ag.l}</span></div><div class="hr"></div>
+      <div class="row"><span>Precio del servicio</span><span class="big" style="color:${inc?'#9CA3AF':'inherit'}">${inc?'—':money(price)}</span></div>
+      <div style="text-align:right;font-size:12px;color:${inc?'var(--red)':'var(--muted)'};font-weight:${inc?600:400}">${inc?'No disponible para esta combinación':'IVA incluido'}</div>
+      ${c.confirmed?banner('ok','Configuración confirmada','Lista para agregarla al carrito (CU-CLI-14).').replace('class="banner ok"','class="banner ok" style="margin:16px 0 0"'):''}
+      ${btn('Confirmar configuración','confirm13','primary block',(inc||c.confirmed)?'disabled':'style="margin-top:18px"')}
+      <button class="link" data-act="reset13">${c.confirmed?'Reconfigurar':'Cancelar'}</button>
+    </div></div>`);
+  const trace = inc ? 'Excepción 5a · la combinación es incompatible: el sistema pide modificar la configuración (regresar al paso 3)'
+    : c.confirmed ? 'Secuencia normal · pasos 8 y 9: el cliente confirma y la configuración queda lista para agregarse al carrito'
+    : 'Secuencia normal · pasos 2 a 7: el sistema muestra las opciones, verifica la compatibilidad, calcula el precio y muestra el resumen';
+  return {html,trace};
+};
+
+/* ---- CU-CLI-16 ---- */
+SCREENS['16:main'] = () => {
+  const c=S.c16, t=totals(c.qty);
+  const html = shellC('Inicio / Carrito / Confirmar pedido', `
+    <h1 class="page-title">Confirmar pedido</h1><p class="page-sub">Revisá el resumen de tu compra antes de confirmar el pedido.</p>
+    <div class="cols"><div class="card"><h2>Resumen de tu compra</h2>
+      ${c.error?banner('error','Stock insuficiente para continuar','Modificá la cantidad del producto indicado para poder confirmar el pedido.'):''}
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>Ítem</th><th>Cant.</th><th>Precio unit.</th><th>Subtotal</th></tr></thead><tbody>
+      <tr><td><div class="itm"><em>MAT</em><div><b>Matafuego ABC 5 kg</b>${c.error?`<small class="red">Stock disponible: ${STOCK} unidades (pediste ${c.qty})</small>`:'<small>Producto físico</small>'}</div></div></td>
+        <td><span class="stepper"><button data-act="qty" data-v="-1" aria-label="Menos">−</button><b>${c.qty}</b><button data-act="qty" data-v="1" aria-label="Más">+</button></span></td>
+        <td>$ 42.000</td><td><b>${money(c.qty*42000)}</b></td></tr>
+      <tr><td><div class="itm"><em>REC</em><div><b>Recarga y mantenimiento 5 kg</b><small>Servicio · Polvo ABC</small></div></div></td><td><b>1</b></td><td>$ 18.500</td><td><b>$ 18.500</b></td></tr>
+      </tbody></table></div>
+      <p style="font-weight:700;margin:22px 0 0">Dirección de envío</p>
+      <div class="addr"><span>Av. Mitre 1500, Avellaneda, Buenos Aires (1870)</span><a>Cambiar</a></div>
+    </div>
+    <div class="card"><h2>Totales</h2><div class="hr"></div>
+      <div class="row"><span>Subtotal</span><span>${money(t.sub)}</span></div>
+      <div class="row"><span>Costo de envío</span><span>${money(t.env)}</span></div>
+      <div class="row"><span>Impuestos (IVA incluido)</span><span>${money(t.iva)}</span></div><div class="hr"></div>
+      <div class="row"><span style="font-weight:700;color:var(--ink)">Total</span><span class="big">${money(t.total)}</span></div>
+      <div class="infobox">Al confirmar, reservamos el stock de los productos físicos por 15 minutos.</div>
+      ${btn('Confirmar pedido','confirm16','primary block',c.error?'disabled':'')}
+      ${btn('Volver al carrito','out','block')}
+    </div></div>`);
+  const trace = c.error ? 'Excepción · stock insuficiente (paso 3): el sistema informa el producto afectado y no registra el pedido'
+    : 'Secuencia normal · pasos 1 y 2: el sistema muestra el resumen y el cliente lo revisa (probá subir la cantidad a más de 3 y confirmar)';
+  return {html,trace};
+};
+SCREENS['16:done'] = () => ({
+  html: shellC('Inicio / Carrito / Pedido registrado', result('ok','Pedido registrado',
+    [`Número de pedido: ${PEDIDO} · Total: ${money(totals(qtyEff()).total)}`,'Reservamos el stock de tus productos por 15 minutos.','Completá el pago para confirmar la compra.'],
+    chip('PENDIENTE_PAGO','amber'), btn('Pagar ahora','goPay','primary')+btn('Ver mis pedidos','out'))),
+  trace:'Secuencia normal · pasos 4 a 6: el pedido queda en PENDIENTE_PAGO y el stock reservado por 15 minutos',
+});
+
+/* ---- CU-CLI-17 ---- */
+const remaining = () => Math.max(0, Math.floor((S.reservaEnd - Date.now())/1000));
+const fmtRem = () => { const r=remaining(); return pad(Math.floor(r/60))+':'+pad(r%60); };
+SCREENS['17:medios'] = () => {
+  const c=S.c17, t=totals(qtyEff());
+  const m=METHODS.map((x,i)=>`<button class="pay ${i===c.method?'on':''}" data-act="method" data-v="${i}"><span class="radio"></span><span><b>${x[0]}</b><small>${x[1]}</small></span></button>`).join('');
+  const html = shellC('Inicio / Mis pedidos / Pagar pedido', `
+    <h1 class="page-title">Pagar pedido ${PEDIDO}</h1><p class="page-sub">Elegí un medio de pago. Vas a completar la operación en la pasarela de pagos.</p>
+    <div class="cols"><div class="card"><h2>Medio de pago</h2>
+      ${c.err?banner('error','No pudimos conectar con la pasarela de pagos','Intentá nuevamente en unos instantes. Tu pedido sigue reservado.'):''}
+      ${c.info?banner('warn','Cancelaste el pago en la pasarela','Tu pedido sigue en PENDIENTE_PAGO hasta que venza la reserva.'):''}
+      ${m}<div class="infobox">Serás redirigido a la pasarela de pagos para completar la operación.<br>No almacenamos datos bancarios ni de tarjetas.</div></div>
+    <div class="card"><h2>Tu pedido</h2><div class="hr"></div>
+      <div class="row"><span>Pedido</span><span>${PEDIDO}</span></div>
+      <div class="row"><span>Ítems</span><span>${qtyEff()+1}</span></div>
+      <div class="row"><span>Envío</span><span>${money(t.env)}</span></div><div class="hr"></div>
+      <div class="row"><span>Total a pagar</span><span class="big">${money(t.total)}</span></div>
+      <div style="margin:6px 0 4px">${chip('Reserva vence en <span id="cd">'+fmtRem()+'</span>','amber')}</div>
+      ${btn(c.err?'Reintentar pago':'Pagar '+money(t.total),'pay','primary block')}
+      <button class="link" data-act="out">Volver al pedido</button>
+    </div></div>`);
+  const trace = c.err ? 'Excepción · pasarela no disponible (paso 6): el sistema muestra un error y permite reintentar (regresar al paso 3)'
+    : c.info ? 'Excepción · el cliente abandona el pago (paso 7): el pedido permanece en PENDIENTE_PAGO hasta que venza la reserva'
+    : 'Secuencia normal · pasos 1 a 5: el sistema verifica el pedido, muestra los medios de pago y registra la transacción';
+  return {html,trace};
+};
+SCREENS['17:redir'] = () => {
+  const t=totals(qtyEff());
+  const gw = S.c17.gateway ? `<div class="gw"><small>Pasarela de pagos externa (simulada) · ${esc(METHODS[S.c17.method][0])} · ${money(t.total)}</small>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${btn('Aprobar pago','simOk','primary')}${btn('Rechazar pago','simRej')}${btn('Cerrar sin pagar','simAbandon')}</div>
+    <small style="margin:10px 0 0">Esta pantalla pertenece a la pasarela y solo simula el pago del cliente y la notificación (webhook) al sistema.</small></div>` : '';
+  return {
+    html: shellC('Inicio / Mis pedidos / Pagar pedido', result('wait','Redirigiendo a la pasarela de pagos…',['Vas a completar el pago en un sitio seguro.','No cierres esta ventana.'],'','',gw)),
+    trace: S.c17.gateway ? 'Secuencia normal · pasos 7 y 8: el cliente completa el pago y la pasarela notifica el resultado (webhook)' : 'Secuencia normal · paso 6: el sistema redirige al cliente a la pasarela de pagos',
+  };
+};
+SCREENS['17:ok'] = () => ({
+  html: shellC('Inicio / Mis pedidos / Pagar pedido', result('ok','Pago aprobado',[`Pedido ${PEDIDO} · Total: ${money(totals(qtyEff()).total)}`,'Te enviamos un correo electrónico con la confirmación.'],chip('APROBADO','green'),btn('Ver mis pedidos','out','primary'))),
+  trace:'Secuencia normal · pasos 9 a 11: se valida la firma, el pedido pasa a APROBADO, se consolida el stock y se notifica al cliente por correo',
+});
+SCREENS['17:rej'] = () => ({
+  html: shellC('Inicio / Mis pedidos / Pagar pedido', result('err','El pago fue rechazado',['La pasarela no pudo procesar la operación.',`Liberamos la reserva de stock del pedido ${PEDIDO}.`],chip('CANCELADO','red'),btn('Volver al carrito','out','primary')+btn('Ver mis pedidos','out'))),
+  trace:'Excepción · pago rechazado (paso 8): el pedido pasa a CANCELADO, se libera la reserva y se notifica al cliente',
+});
+SCREENS['17:exp'] = () => ({
+  html: shellC('Inicio / Mis pedidos / Pagar pedido', result('warn','El pedido fue cancelado',['La reserva de 15 minutos expiró antes de completar el pago.','Podés volver a armar tu compra desde el carrito.'],chip('CANCELADO','red'),btn('Volver al carrito','out','primary'))),
+  trace:'Excepción · reserva expirada (paso 2): el pedido ya no está en PENDIENTE_PAGO porque venció la reserva y fue cancelado',
+});
+
+/* ---- CU-LOG-09 ---- */
+const LOG_ITEMS=['Pedidos aprobados','Preparación de envíos','Órdenes de servicio','Recepción de matafuegos'];
+const shellL = (bc, inner) => shellA('Operador de Logística', LOG_ITEMS, 'Recepción de matafuegos', bc, inner);
+SCREENS['L:scan'] = () => {
+  const l=S.log;
+  const html = shellL('Panel interno / Recepción de matafuegos', `
+    <h1 class="page-title">Recepción de matafuegos</h1><p class="page-sub">Escaneá el código QR del cupón para identificar la orden de servicio.</p>
+    ${l.bad?banner('error','No se pudo leer el código QR','Ingresá manualmente el código alfanumérico del cupón para continuar.'):''}
+    <div class="cols"><div class="card"><div class="scanner"><i></i>${QR}</div>
+      <p style="text-align:center;font-weight:700;margin:0">Apuntá la cámara al código QR del cupón</p>
+      <p style="text-align:center;color:var(--muted);margin:4px 0 16px">La orden se identifica automáticamente al leer el código.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${btn('Simular lectura de QR','simScan','primary')}${btn('Simular QR ilegible','simBad')}</div></div>
+    <div class="card"><h2>¿No se puede escanear?</h2><p style="color:var(--muted);margin:-6px 0 16px">Ingresá el código alfanumérico del cupón.</p>
+      <div class="fld"><label for="code">Código del cupón</label><input id="code" data-bind="log.code" value="${esc(l.code)}" placeholder="Ej. ${ORDEN_OK}" autocomplete="off"></div>
+      ${btn('Buscar orden','search','primary block')}
+      <p style="font-size:12px;color:var(--muted);margin:14px 0 0">Demo: <b>${ORDEN_OK}</b> (válida), <b>${ORDEN_YA}</b> (ya recibida) u otro código cualquiera (no existe).</p></div></div>`);
+  return {html, trace: l.bad ? 'Excepción · QR inválido o ilegible (paso 1): el operador ingresa el código manualmente y se regresa al paso 2'
+    : 'Secuencia normal · paso 1: el operador recibe el matafuego y valida el cupón mediante QR (CU-LOG-08)'};
+};
+SCREENS['L:orden'] = () => ({
+  html: shellL(`Panel interno / Recepción de matafuegos / ${ORDEN_OK}`, `
+    <h1 class="page-title">Orden de servicio</h1><p class="page-sub">Revisá los datos de la orden y confirmá la recepción del equipo.</p>
+    <div class="card"><div class="head-row"><h2 style="margin:0">${ORDEN_OK}</h2>${chip('ESPERANDO_RECEPCION','amber')}</div>
+      <div class="dl"><div><small>Cliente</small><b>Metalúrgica Del Sur S.R.L.</b></div><div><small>Pedido</small><b>${PEDIDO}</b></div>
+      <div><small>Capacidad del cilindro</small><b>5 kg</b></div><div><small>Agente extintor</small><b>Polvo ABC</b></div></div>
+      <div class="actions">${btn('Confirmar recepción del equipo','confirmRec','primary')}${btn('Cancelar','cancelRec')}</div></div>`),
+  trace:'Secuencia normal · pasos 2 y 3: el sistema busca la orden y muestra sus datos; el operador confirma la recepción del equipo',
+});
+SCREENS['L:ok'] = () => ({
+  html: shellL('Panel interno / Recepción de matafuegos', result('ok','Recepción registrada',[`Orden ${ORDEN_OK} · Recepción en planta: ${S.log.ts}`,'Notificamos al cliente por correo electrónico.'],chip('EN_PLANTA','blue'),btn('Recibir otro equipo','again','primary')+btn('Ver órdenes de servicio','out'))),
+  trace:'Secuencia normal · pasos 4 a 6: se registra la fecha, la orden pasa de ESPERANDO_RECEPCION a EN_PLANTA y se notifica al cliente',
+});
+SCREENS['L:invalid'] = () => ({
+  html: shellL('Panel interno / Recepción de matafuegos', result('err','No se encontró una orden válida',[S.log.reason,'Informá al cliente y no recibas el equipo.'],'',btn('Volver a escanear','again','primary'))),
+  trace:'Excepción · la orden no existe o no está en ESPERANDO_RECEPCION (paso 2): el operador informa al cliente y no recibe el equipo',
+});
+
+/* ---- CU-ADM-01 ---- */
+const shellV = (bc, inner) => shellA('Operador de Ventas', ['Productos','Inventario','Cuentas corporativas'], 'Productos', bc, inner);
+const fe = k => S.adm.errors[k] ? `<div class="err">${S.adm.errors[k]}</div>` : '';
+const inv = k => S.adm.errors[k] ? 'invalid' : '';
+SCREENS['A:form'] = () => {
+  const a=S.adm, cats=['Matafuegos','EPP','Balizas','Señalética','Mangueras'];
+  const certs = a.certs.map((c,i)=>`<span class="chip blue">${esc(c)}<button data-act="delCert" data-v="${i}" aria-label="Quitar">×</button></span>`).join('');
+  const html = shellV('Panel interno / Productos / Nuevo producto', `
+    <h1 class="page-title">Nuevo producto</h1><p class="page-sub">Completá los datos del producto para publicarlo en el catálogo. <button class="link" style="display:inline;margin:0 0 0 6px;color:var(--red)" data-act="example">Cargar datos de ejemplo</button></p>
+    ${a.banner?banner('error','Revisá los campos marcados','Hay datos obligatorios incompletos o con valores inválidos.'):''}
+    <div class="card">
+      <p class="sec">Datos generales</p>
+      <div class="grid2"><div class="fld"><label for="f1">Nombre *</label><input id="f1" class="${inv('nombre')}" data-bind="adm.nombre" value="${esc(a.nombre)}" placeholder="Ej. Matafuego ABC 5 kg">${fe('nombre')}</div>
+      <div class="fld"><label for="f2">Categoría *</label><select id="f2" data-bind="adm.cat">${cats.map(c=>`<option ${c===a.cat?'selected':''}>${c}</option>`).join('')}</select></div></div>
+      <div class="fld"><label for="f3">Descripción *</label><textarea id="f3" class="${inv('desc')}" data-bind="adm.desc">${esc(a.desc)}</textarea>${fe('desc')}</div>
+      <p class="sec" style="margin-top:24px">Precio y stock</p>
+      <div class="grid3"><div class="fld"><label for="f4">Precio unitario ($) *</label><input id="f4" type="number" class="${inv('precio')}" data-bind="adm.precio" value="${esc(a.precio)}" placeholder="0">${fe('precio')}</div>
+      <div class="fld"><label for="f5">Stock mínimo *</label><input id="f5" type="number" class="${inv('stockMin')}" data-bind="adm.stockMin" value="${esc(a.stockMin)}" placeholder="0">${fe('stockMin')}</div>
+      <div class="fld"><label for="f6">Existencias iniciales *</label><input id="f6" type="number" class="${inv('exist')}" data-bind="adm.exist" value="${esc(a.exist)}" placeholder="0">${fe('exist')}</div></div>
+      <p class="sec" style="margin-top:24px">Especificaciones y certificaciones</p>
+      <div class="grid2"><div class="fld"><label for="f7">Especificaciones técnicas</label><textarea id="f7" data-bind="adm.specs">${esc(a.specs)}</textarea></div>
+      <div class="fld"><label>Ficha técnica (PDF)</label><label class="drop"><input type="file" accept="application/pdf" data-act="pdf" style="display:none"><b>${a.pdf?esc(a.pdf):'Subí o arrastrá un archivo PDF'}</b>Máximo 5 MB</label></div></div>
+      <div class="fld"><label>Certificaciones (ej. IRAM)</label><div class="certs">${certs}<input id="certTmp" data-bind="adm.certTmp" value="${esc(a.certTmp)}" placeholder="Ej. IRAM 3517">${btn('+ Agregar','addCert')}</div></div>
+      <div class="actions">${btn('Confirmar alta','save','primary')}${btn('Cancelar','cancelAdm')}</div>
+    </div>`);
+  const hasErr = Object.keys(a.errors).length>0;
+  return {html, trace: hasErr ? 'Excepción · datos inválidos (paso 7): el sistema indica los campos con error y regresa al paso 3'
+    : 'Secuencia normal · pasos 1 a 6: el usuario completa el formulario y confirma el alta (probá enviarlo vacío)'};
+};
+SCREENS['A:ok'] = () => ({
+  html: shellV('Panel interno / Productos / Nuevo producto', result('ok','Producto dado de alta',
+    [`${esc(S.adm.nombre)} · ya está disponible en el catálogo.`,`Registramos ${esc(S.adm.exist)} unidades como ingreso en el historial de inventario.`],chip('ACTIVO','green'),
+    btn('Ver producto','out','primary')+btn('Cargar otro producto','newProduct'))),
+  trace:'Secuencia normal · pasos 8 y 9: el sistema registra el producto como activo, asienta el ingreso inicial y lo publica en el catálogo',
+});
+
+/* ============ navegación ============ */
+const TITLES = {'13':'CU-CLI-13 Configurar servicio de recarga','16':'CU-CLI-16 Confirmar pedido','17':'CU-CLI-17 Iniciar pago','L':'CU-LOG-09 Registrar recepción del matafuego','A':'CU-ADM-01 Dar de alta producto'};
+const admErr = () => Object.keys(S.adm.errors).length>0;
+const NAV = [
+  {cu:'13',id:'CU-CLI-13',name:'Configurar servicio de recarga',items:[
+    ['main','Configurar recarga','n',()=>S.view.cu==='13'&&!(INCOMP[S.c13.agent]||[]).includes(S.c13.cap)],
+    ['incomp','Combinación incompatible','e',()=>S.view.cu==='13'&&(INCOMP[S.c13.agent]||[]).includes(S.c13.cap)]]},
+  {cu:'16',id:'CU-CLI-16',name:'Confirmar pedido',items:[
+    ['main','Resumen de compra','n',()=>S.view.cu==='16'&&S.view.sc==='main'&&!S.c16.error],
+    ['done','Pedido registrado','n',()=>S.view.cu==='16'&&S.view.sc==='done'],
+    ['stock','Stock insuficiente','e',()=>S.view.cu==='16'&&S.view.sc==='main'&&S.c16.error]]},
+  {cu:'17',id:'CU-CLI-17',name:'Iniciar pago',items:[
+    ['medios','Medios de pago','n',()=>S.view.cu==='17'&&S.view.sc==='medios'&&!S.c17.err&&!S.c17.info],
+    ['redir','Redirección y pasarela','n',()=>S.view.cu==='17'&&S.view.sc==='redir'],
+    ['ok','Pago aprobado','n',()=>S.view.cu==='17'&&S.view.sc==='ok'],
+    ['rej','Pago rechazado','e',()=>S.view.cu==='17'&&S.view.sc==='rej'],
+    ['exp','Reserva expirada','e',()=>S.view.cu==='17'&&S.view.sc==='exp'],
+    ['down','Pasarela no disponible','e',()=>S.view.cu==='17'&&S.view.sc==='medios'&&S.c17.err]]},
+  {cu:'L',id:'CU-LOG-09',name:'Registrar recepción del matafuego',items:[
+    ['scan','Escanear QR','n',()=>S.view.cu==='L'&&S.view.sc==='scan'&&!S.log.bad],
+    ['orden','Datos de la orden','n',()=>S.view.cu==='L'&&S.view.sc==='orden'],
+    ['ok','Recepción registrada','n',()=>S.view.cu==='L'&&S.view.sc==='ok'],
+    ['bad','QR ilegible','e',()=>S.view.cu==='L'&&S.view.sc==='scan'&&S.log.bad],
+    ['invalid','Orden no válida','e',()=>S.view.cu==='L'&&S.view.sc==='invalid']]},
+  {cu:'A',id:'CU-ADM-01',name:'Dar de alta producto',items:[
+    ['form','Formulario de alta','n',()=>S.view.cu==='A'&&S.view.sc==='form'&&!admErr()],
+    ['errors','Errores de validación','e',()=>S.view.cu==='A'&&S.view.sc==='form'&&admErr()],
+    ['ok','Alta exitosa','n',()=>S.view.cu==='A'&&S.view.sc==='ok']]},
+];
+
+function ensureReserva(){ if(remaining()<=0) S.reservaEnd = Date.now()+872000; }
+function startReserva(){ S.reservaEnd = Date.now()+15*60*1000; }
+const PRESETS = {
+  '13:main':()=>{S.c13={cap:'5 kg',agent:'Polvo ABC',confirmed:false};go('13','main')},
+  '13:incomp':()=>{S.c13={cap:'1 kg',agent:'Agua pulverizada',confirmed:false};go('13','main')},
+  '16:main':()=>{S.c16={qty:2,error:false};go('16','main')},
+  '16:done':()=>{startReserva();go('16','done')},
+  '16:stock':()=>{S.c16={qty:4,error:true};go('16','main')},
+  '17:medios':()=>{S.c17={method:0,gateway:false,err:false,info:false,simDown:false};ensureReserva();go('17','medios')},
+  '17:redir':()=>{S.c17={...S.c17,gateway:false,err:false,info:false};ensureReserva();go('17','redir');scheduleGateway()},
+  '17:ok':()=>go('17','ok'),
+  '17:rej':()=>go('17','rej'),
+  '17:exp':()=>go('17','exp'),
+  '17:down':()=>{S.c17={method:0,gateway:false,err:true,info:false,simDown:true};ensureReserva();go('17','medios')},
+  'L:scan':()=>{S.log={code:'',bad:false,reason:'',ts:''};go('L','scan')},
+  'L:orden':()=>go('L','orden'),
+  'L:ok':()=>{S.log.ts=stamp();go('L','ok')},
+  'L:bad':()=>{S.log={code:'',bad:true,reason:'',ts:''};go('L','scan');$('#code')?.focus()},
+  'L:invalid':()=>{S.log.reason='El código no existe o la orden no está esperando recepción.';go('L','invalid')},
+  'A:form':()=>{S.adm=blankAdm();go('A','form')},
+  'A:errors':()=>{S.adm={...exampleAdm(),nombre:'',precio:'0',exist:'-5',certs:[],pdf:''};S.adm.errors=validate();S.adm.banner=true;go('A','form')},
+  'A:ok':()=>{S.adm=exampleAdm();go('A','ok')},
+};
+const stamp = () => { const d=new Date(); return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+function scheduleGateway(){ clearTimeout(scheduleGateway.h); scheduleGateway.h=setTimeout(()=>{ if(S.view.cu==='17'&&S.view.sc==='redir'){ S.c17.gateway=true; render(); } },1400); }
+
+function go(cu,sc){ S.view={cu,sc}; render(); }
+function render(){
+  const key = S.view.cu==='L' ? 'L:'+S.view.sc : S.view.cu==='A' ? 'A:'+S.view.sc : S.view.cu+':'+S.view.sc;
+  const out = SCREENS[key]();
+  $('#app').innerHTML = out.html;
+  $('#trace').innerHTML = `<b>Prototipo · ${TITLES[S.view.cu]}</b> · ${out.trace}`;
+  renderNav();
+}
+function renderNav(){
+  const open = new Set([...document.querySelectorAll('#nav details[open]')].map(d=>d.dataset.cu));
+  const first = !$('#nav details');
+  $('#nav').innerHTML = `<h1>Prototipo de interfaz</h1><p>Un caso de uso por sección. Probá la pantalla directamente o saltá a una situación puntual.</p>
+  ${NAV.map(g=>`<details data-cu="${g.cu}" ${(first?g.cu===S.view.cu:open.has(g.cu))?'open':''}><summary>${g.id}<small>${g.name}</small></summary><div class="items">
+    ${g.items.map(i=>`<button class="it ${i[3]()?'on':''}" data-nav="${g.cu}:${i[0]}"><span>${i[1]}</span><span class="tg ${i[2]}">${i[2]==='n'?'Normal':'Excepción'}</span></button>`).join('')}</div></details>`).join('')}
+  <div class="sim"><b>Simulador (solo para la demo)</b>
+    <label><input type="checkbox" id="simDown" ${S.c17.simDown?'checked':''}> Pasarela de pagos no disponible</label>
+    <button data-act="expire">Vencer la reserva ahora</button></div>`;
+}
+
+/* ============ acciones ============ */
+function validate(){
+  const a=S.adm, e={};
+  if(!a.nombre.trim()) e.nombre='El nombre es obligatorio.';
+  if(!a.desc.trim()) e.desc='La descripción es obligatoria.';
+  const p=Number(a.precio); if(a.precio===''||!(p>0)) e.precio='El precio debe ser mayor a 0.';
+  const sm=Number(a.stockMin); if(a.stockMin===''||!Number.isInteger(sm)||sm<0) e.stockMin='Ingresá un entero mayor o igual a 0.';
+  const ex=Number(a.exist); if(a.exist==='') e.exist='Ingresá las existencias iniciales.'; else if(!Number.isInteger(ex)||ex<0) e.exist='No puede ser negativo.';
+  return e;
+}
+const ACTIONS = {
+  out:OUT,
+  cap:v=>{S.c13.cap=v;S.c13.confirmed=false;render()},
+  agent:v=>{S.c13.agent=v;S.c13.confirmed=false;render()},
+  confirm13:()=>{S.c13.confirmed=true;render()},
+  reset13:()=>{ if(S.c13.confirmed){S.c13.confirmed=false}else{S.c13={cap:'5 kg',agent:'Polvo ABC',confirmed:false}} render()},
+  qty:v=>{S.c16.qty=Math.min(10,Math.max(1,S.c16.qty+Number(v)));S.c16.error=false;render()},
+  confirm16:()=>{ if(S.c16.qty>STOCK){S.c16.error=true;render()}else{startReserva();go('16','done')} },
+  goPay:()=>{S.c17={method:0,gateway:false,err:false,info:false,simDown:S.c17.simDown};go('17','medios')},
+  method:v=>{S.c17.method=Number(v);render()},
+  pay:()=>{
+    if(S.c17.simDown){S.c17.err=true;S.c17.info=false;render();return}
+    S.c17.err=false;S.c17.info=false;S.c17.gateway=false;go('17','redir');scheduleGateway();
+  },
+  simOk:()=>go('17','ok'), simRej:()=>go('17','rej'),
+  simAbandon:()=>{S.c17.info=true;S.c17.err=false;S.c17.gateway=false;go('17','medios')},
+  expire:()=>{S.reservaEnd=Date.now()-1; if(S.view.cu==='17'&&['medios','redir'].includes(S.view.sc)) go('17','exp'); else toast('La reserva venció. Abrí el pago para ver el efecto.')},
+  simScan:()=>{S.log.code=ORDEN_OK;S.log.bad=false;ACTIONS.search()},
+  simBad:()=>{S.log.bad=true;render();$('#code')?.focus()},
+  search:()=>{
+    const code=(S.log.code||'').trim().toUpperCase();
+    if(code===ORDEN_OK){S.log.bad=false;go('L','orden');return}
+    S.log.reason = code===ORDEN_YA ? 'La orden ya fue recibida (estado EN_PLANTA).' : 'El código no existe o la orden no está esperando recepción.';
+    go('L','invalid');
+  },
+  confirmRec:()=>{S.log.ts=stamp();go('L','ok')},
+  cancelRec:()=>{S.log={code:'',bad:false,reason:'',ts:''};go('L','scan')},
+  again:()=>{S.log={code:'',bad:false,reason:'',ts:''};go('L','scan')},
+  example:()=>{S.adm=exampleAdm();render()},
+  addCert:()=>{const v=(S.adm.certTmp||'').trim(); if(v){S.adm.certs.push(v);S.adm.certTmp='';render();$('#certTmp')?.focus()}},
+  delCert:v=>{S.adm.certs.splice(Number(v),1);render()},
+  save:()=>{
+    S.adm.errors=validate();
+    if(Object.keys(S.adm.errors).length){S.adm.banner=true;render();$('#app').scrollIntoView({behavior:'smooth',block:'start'})}
+    else{S.adm.banner=false;go('A','ok')}
+  },
+  cancelAdm:()=>{S.adm=blankAdm();render();toast('Alta cancelada: se descartaron los datos.')},
+  newProduct:()=>{S.adm=blankAdm();go('A','form')},
+};
+
+document.addEventListener('click',e=>{
+  const nav=e.target.closest('[data-nav]');
+  if(nav){ PRESETS[nav.dataset.nav](); window.scrollTo({top:0}); return; }
+  const el=e.target.closest('[data-act]');
+  if(!el||el.tagName==='INPUT') return;
+  const f=ACTIONS[el.dataset.act]; if(f) f(el.dataset.v);
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.bind){ const [g,k]=t.dataset.bind.split('.'); S[g][k]=t.value; }
+  if(t.id==='simDown'){ S.c17.simDown=t.checked; }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.bind){ const [g,k]=t.dataset.bind.split('.'); S[g][k]=t.value; }
+  if(t.id==='simDown'){ S.c17.simDown=t.checked; }
+  if(t.dataset&&t.dataset.act==='pdf'&&t.files&&t.files[0]){ S.adm.pdf=t.files[0].name; render(); }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.id==='code'){ e.preventDefault(); ACTIONS.search(); }
+  if(e.key==='Enter'&&e.target.id==='certTmp'){ e.preventDefault(); ACTIONS.addCert(); }
+});
+setInterval(()=>{
+  const cd=$('#cd'); if(cd) cd.textContent=fmtRem();
+  if(S.reservaEnd&&remaining()<=0&&S.view.cu==='17'&&['medios','redir'].includes(S.view.sc)){ S.reservaEnd=0; go('17','exp'); }
+},1000);
+
+render();
+</script>
+</body>
+</html>
